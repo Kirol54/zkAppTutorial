@@ -1,8 +1,8 @@
 import {
   Bool,
   PublicKey,
-  PrivateKey,
-  Signature,
+  // PrivateKey,
+  // Signature,
   Field,
   SmartContract,
   state,
@@ -12,7 +12,7 @@ import {
   Permissions,
 } from 'snarkyjs';
 
-export class Add extends SmartContract {
+export class Main extends SmartContract {
   @state(Field) state1 = State<Field>();
   @state(Field) state2 = State<Field>();
   @state(Field) state3 = State<Field>();
@@ -24,7 +24,7 @@ export class Add extends SmartContract {
     super.deploy(args);
     this.setPermissions({
       ...Permissions.default(),
-      editState: Permissions.proof(),
+      editState: Permissions.proofOrSignature(),
     });
   }
 
@@ -74,64 +74,65 @@ export class Add extends SmartContract {
     //   b.toBoolean(); // true
     let isInputGreater = inputValue.gt(8);
     this.BoolA.set(isInputGreater);
-    const currentState1 = this.state1.get();
-    this.state1.assertEquals(currentState1);
+    // const currentState1 = this.state1.get();
+    // this.state1.assertEquals(currentState1);
 
     let isInputLower = inputValue.lte(50);
     let isInRange = isInputLower.and(isInputGreater);
     this.BoolB.set(isInRange);
   }
-  @method verifyUser(userPrivKey: PrivateKey) {
-    // returns public key of the user ?
-    let userAddr = userPrivKey.toPublicKey();
-    this.user.set(userAddr);
-    //priv key
-  }
-  @method signature(x: Field, signature: Signature) {
-    let ownerAddr = this.user.get();
-    signature.verify(ownerAddr, [x]).assertEquals(true);
-  }
+  // @method verifyUser(userPrivKey: PrivateKey) {
+  //   // returns public key of the user ?
+  //   let userAddr = userPrivKey.toPublicKey();
+  //   this.user.set(userAddr);
+  //   //priv key
+  // }
+  // @method signature(x: Field, signature: Signature) {
+  //   let ownerAddr = this.user.get();
+  //   this.user.assertEquals(ownerAddr);
+  //   signature.verify(ownerAddr, [x]).assertEquals(true);
+  // }
 
-  @method assertMethods() {
-    //     x.assertEquals(y); // x = y
-    // x.assertBoolean(); // x = 0 or x = 1
-    // x.assertLt(y);     // x < y
-    // x.assertLte(y);    // x <= y
-    // x.assertGt(y);     // x > y
-    // x.assertGte(y);    // x >= y
-  }
+  // @method assertMethods() {
+  //     x.assertEquals(y); // x = y
+  // x.assertBoolean(); // x = 0 or x = 1
+  // x.assertLt(y);     // x < y
+  // x.assertLte(y);    // x <= y
+  // x.assertGt(y);     // x > y
+  // x.assertGte(y);    // x >= y
+  // }
 
-  @method conditional() {
-    // const x = Circuit.if(new Bool(foo), a, b); // behaves like `foo ? a : b`
-  }
+  // @method conditional() {
+  // const x = Circuit.if(new Bool(foo), a, b); // behaves like `foo ? a : b`
+  // }
 
-  @method hashing() {
-    // let hash = Poseidon.hash([x]); // takes array of Fields, returns Field
-  }
+  // @method hashing() {
+  // let hash = Poseidon.hash([x]); // takes array of Fields, returns Field
+  // }
 
-  @method transferCoin() {}
+  // @method transferCoin() {}
 
   //--------------------------------------------------------
-  @method networkValues() {
-    // ask on office hours/discord, how safe it is ? eth is aint that safe with blocktime
-    //     const startDate = UInt64.from(Date.UTC(2022, 9, 1));
-    // const endDate = UInt64.from(Date.UTC(2022, 10, 1));
-    //     this.network.timestamp.get();
-    // this.network.timestamp.assertEquals(timestamp);
-    // this.network.timestamp.assertBetween(startDate, endDate);
-  }
-  @method emitEvent() {
-    // events = {
-    //   "add-merkle-leaf": Field,
-    //   "update-merkle-leaf": Field,
-    // }
-    // @method updateMerkleTree(leaf: Field, ...) {
-    //   this.emitEvent("update-merkle-leaf", leaf);
-    //   // ...
-    // }
-  }
+  // @method networkValues() {
+  // ask on office hours/discord, how safe it is ? eth is aint that safe with blocktime
+  //     const startDate = UInt64.from(Date.UTC(2022, 9, 1));
+  // const endDate = UInt64.from(Date.UTC(2022, 10, 1));
+  //     this.network.timestamp.get();
+  // this.network.timestamp.assertEquals(timestamp);
+  // this.network.timestamp.assertBetween(startDate, endDate);
+  // }
+  // @method emitEvent() {
+  // events = {
+  //   "add-merkle-leaf": Field,
+  //   "update-merkle-leaf": Field,
+  // }
+  // @method updateMerkleTree(leaf: Field, ...) {
+  //   this.emitEvent("update-merkle-leaf", leaf);
+  //   // ...
+  // }
+  // }
 
-  @method action() {}
-  @method reducer() {}
-  @method recursion() {}
+  // @method action() {}
+  // @method reducer() {}
+  // @method recursion() {}
 }
