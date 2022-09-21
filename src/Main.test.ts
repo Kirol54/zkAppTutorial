@@ -7,7 +7,8 @@ import {
   PrivateKey,
   PublicKey,
   AccountUpdate,
-  Bool,
+  // Bool,
+  Signature,
 } from 'snarkyjs';
 
 function createLocalBlockchain() {
@@ -100,7 +101,7 @@ describe('Main', () => {
     expect(updatedState2).toEqual(expectedState2);
   });
 
-  it('correctly updates the state', async () => {
+  it('correctly updates the state mathTwo', async () => {
     inputValue2 = Field(6);
     const txn = await Mina.transaction(deployerAccount, () => {
       zkAppInstance.mathTwo(inputValue2);
@@ -114,18 +115,43 @@ describe('Main', () => {
     const updatedState2 = zkAppInstance.state2.get();
     expect(updatedState2).toEqual(expectedState2.sqrt());
   });
-  it('correctly updates the state', async () => {
-    let inputValue3 = Field(9);
+  // it('correctly updates the state boolMethods', async () => {
+  //   let inputValue3 = Field(9);
+  //   const txn = await Mina.transaction(deployerAccount, () => {
+  //     zkAppInstance.boolMethods(inputValue3);
+  //   });
+  //   await txn.prove();
+  //   await txn.send().wait();
+
+  //   // const updatedBoolA = zkAppInstance.BoolA.get();
+  //   // expect(updatedBoolA).toEqual(inputValue3.gt(8));
+  //   expect(Bool(true)).toEqual(inputValue3.gt(8));
+  //   // const updatedBoolB = zkAppInstance.BoolB.get();
+  //   // expect(updatedBoolB.toBoolean()).toEqual(
+  //   //   inputValue3.lte(50).and(inputValue3.gt(8)).toBoolean()
+  //   // );
+  // });
+  it('correctly verifies the user', async () => {
     const txn = await Mina.transaction(deployerAccount, () => {
-      zkAppInstance.boolMethods(inputValue3);
+      zkAppInstance.verifyUser(deployerAccount);
     });
     await txn.prove();
     await txn.send().wait();
 
-    const updatedState1 = zkAppInstance.state1.get();
-    expect(updatedState1).toEqual(Bool(true));
-
-    const updatedState2 = zkAppInstance.state2.get();
-    expect(updatedState2).toEqual(expectedState2.sqrt());
+    const updatedUserState = zkAppInstance.user.get();
+    expect(updatedUserState).toEqual(deployerAccount.toPublicKey());
   });
+  it('correctly verifies the user signature', async () => {
+    let valueX = Field(999);
+    let signature = Signature.create(deployerAccount, [valueX]);
+    const txn = await Mina.transaction(deployerAccount, () => {
+      zkAppInstance.signature(valueX, signature);
+    });
+    await txn.prove();
+    await txn.send().wait();
+
+    const updatedUserState = zkAppInstance.user.get();
+    expect(updatedUserState).toEqual(deployerAccount.toPublicKey());
+  });
+  //it fails to verify incorrect user
 });

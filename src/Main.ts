@@ -1,8 +1,8 @@
 import {
   Bool,
   PublicKey,
-  // PrivateKey,
-  // Signature,
+  PrivateKey,
+  Signature,
   Field,
   SmartContract,
   state,
@@ -81,17 +81,17 @@ export class Main extends SmartContract {
     let isInRange = isInputLower.and(isInputGreater);
     this.BoolB.set(isInRange);
   }
-  // @method verifyUser(userPrivKey: PrivateKey) {
-  //   // returns public key of the user ?
-  //   let userAddr = userPrivKey.toPublicKey();
-  //   this.user.set(userAddr);
-  //   //priv key
-  // }
-  // @method signature(x: Field, signature: Signature) {
-  //   let ownerAddr = this.user.get();
-  //   this.user.assertEquals(ownerAddr);
-  //   signature.verify(ownerAddr, [x]).assertEquals(true);
-  // }
+  @method verifyUser(userPrivKey: PrivateKey) {
+    // returns public key of the user ?
+    let userAddr = userPrivKey.toPublicKey();
+    this.user.set(userAddr);
+    //priv key
+  }
+  @method signature(x: Field, signature: Signature) {
+    let ownerAddr = this.user.get();
+    this.user.assertEquals(ownerAddr);
+    signature.verify(ownerAddr, [x]).assertEquals(true);
+  }
 
   // @method assertMethods() {
   //     x.assertEquals(y); // x = y
