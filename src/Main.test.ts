@@ -8,7 +8,7 @@ import {
   PublicKey,
   AccountUpdate,
   // Bool,
-  Signature,
+  // Signature,
 } from 'snarkyjs';
 
 function createLocalBlockchain() {
@@ -131,27 +131,5 @@ describe('Main', () => {
   //   //   inputValue3.lte(50).and(inputValue3.gt(8)).toBoolean()
   //   // );
   // });
-  it('correctly verifies the user', async () => {
-    const txn = await Mina.transaction(deployerAccount, () => {
-      zkAppInstance.verifyUser(deployerAccount);
-    });
-    await txn.prove();
-    await txn.send().wait();
-
-    const updatedUserState = zkAppInstance.user.get();
-    expect(updatedUserState).toEqual(deployerAccount.toPublicKey());
-  });
-  it('correctly verifies the user signature', async () => {
-    let valueX = Field(999);
-    let signature = Signature.create(deployerAccount, [valueX]);
-    const txn = await Mina.transaction(deployerAccount, () => {
-      zkAppInstance.signature(valueX, signature);
-    });
-    await txn.prove();
-    await txn.send().wait();
-
-    const updatedUserState = zkAppInstance.user.get();
-    expect(updatedUserState).toEqual(deployerAccount.toPublicKey());
-  });
   //it fails to verify incorrect user
 });

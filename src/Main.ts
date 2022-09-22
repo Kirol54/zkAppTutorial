@@ -1,8 +1,4 @@
 import {
-  Bool,
-  PublicKey,
-  PrivateKey,
-  Signature,
   Field,
   SmartContract,
   state,
@@ -10,15 +6,14 @@ import {
   method,
   DeployArgs,
   Permissions,
+  Poseidon,
 } from 'snarkyjs';
 
 export class Main extends SmartContract {
   @state(Field) state1 = State<Field>();
   @state(Field) state2 = State<Field>();
   @state(Field) state3 = State<Field>();
-  @state(Bool) BoolA = State<Bool>();
-  @state(Bool) BoolB = State<Bool>();
-  @state(PublicKey as any) user = State<PublicKey>();
+  @state(Field) stateHash = State<Field>();
 
   deploy(args: DeployArgs) {
     super.deploy(args);
@@ -68,31 +63,15 @@ export class Main extends SmartContract {
     newState2.assertEquals(currentState2.sqrt());
     this.state2.set(newState2);
   }
-  @method boolMethods(inputValue: Field) {
-    //   let b = x.equals(8); // b = Bool(false)
-    //   b = b.not().or(b).and(b); // b = Bool(true)
-    //   b.toBoolean(); // true
-    let isInputGreater = inputValue.gt(8);
-    this.BoolA.set(isInputGreater);
-    // const currentState1 = this.state1.get();
-    // this.state1.assertEquals(currentState1);
+  @method hashing(inputValue: Field) {
+    const currentState1 = this.state1.get();
+    this.state1.assertEquals(currentState1);
+    const currentState2 = this.state2.get();
+    this.state2.assertEquals(currentState2);
 
-    let isInputLower = inputValue.lte(50);
-    let isInRange = isInputLower.and(isInputGreater);
-    this.BoolB.set(isInRange);
+    let hash = Poseidon.hash([currentState1, currentState2, inputValue]); // takes array of Fields, returns Field
+    this.stateHash.set(hash);
   }
-  @method verifyUser(userPrivKey: PrivateKey) {
-    // returns public key of the user ?
-    let userAddr = userPrivKey.toPublicKey();
-    this.user.set(userAddr);
-    //priv key
-  }
-  @method signature(x: Field, signature: Signature) {
-    let ownerAddr = this.user.get();
-    this.user.assertEquals(ownerAddr);
-    signature.verify(ownerAddr, [x]).assertEquals(true);
-  }
-
   // @method assertMethods() {
   //     x.assertEquals(y); // x = y
   // x.assertBoolean(); // x = 0 or x = 1
@@ -100,14 +79,6 @@ export class Main extends SmartContract {
   // x.assertLte(y);    // x <= y
   // x.assertGt(y);     // x > y
   // x.assertGte(y);    // x >= y
-  // }
-
-  // @method conditional() {
-  // const x = Circuit.if(new Bool(foo), a, b); // behaves like `foo ? a : b`
-  // }
-
-  // @method hashing() {
-  // let hash = Poseidon.hash([x]); // takes array of Fields, returns Field
   // }
 
   // @method transferCoin() {}
