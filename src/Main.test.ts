@@ -7,6 +7,7 @@ import {
   PrivateKey,
   PublicKey,
   AccountUpdate,
+  Poseidon,
   // Bool,
   // Signature,
 } from 'snarkyjs';
@@ -28,6 +29,9 @@ async function localDeploy(
     zkAppInstance.sign(zkAppPrivatekey);
   });
   await txn.send().wait();
+}
+function randomNumber(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min) + min);
 }
 
 describe('Main', () => {
@@ -115,21 +119,19 @@ describe('Main', () => {
     const updatedState2 = zkAppInstance.state2.get();
     expect(updatedState2).toEqual(expectedState2.sqrt());
   });
-  // it('correctly updates the state boolMethods', async () => {
-  //   let inputValue3 = Field(9);
-  //   const txn = await Mina.transaction(deployerAccount, () => {
-  //     zkAppInstance.boolMethods(inputValue3);
-  //   });
-  //   await txn.prove();
-  //   await txn.send().wait();
+  it('correctly hashes values and updates the state', async () => {
+    let inputValue3 = Field(randomNumber(1, 10000));
+    const txn = await Mina.transaction(deployerAccount, () => {
+      zkAppInstance.hashing(inputValue3);
+    });
+    await txn.prove();
+    await txn.send().wait();
 
-  //   // const updatedBoolA = zkAppInstance.BoolA.get();
-  //   // expect(updatedBoolA).toEqual(inputValue3.gt(8));
-  //   expect(Bool(true)).toEqual(inputValue3.gt(8));
-  //   // const updatedBoolB = zkAppInstance.BoolB.get();
-  //   // expect(updatedBoolB.toBoolean()).toEqual(
-  //   //   inputValue3.lte(50).and(inputValue3.gt(8)).toBoolean()
-  //   // );
-  // });
-  //it fails to verify incorrect user
+    const state1 = zkAppInstance.state1.get();
+    const state2 = zkAppInstance.state2.get();
+    const stateHash = zkAppInstance.stateHash.get();
+    let expectedHash = Poseidon.hash([state1, state2, inputValue3]);
+
+    expect(expectedHash).toEqual(stateHash);
+  });
 });

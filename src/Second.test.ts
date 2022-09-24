@@ -29,12 +29,16 @@ async function localDeploy(
   });
   await txn.send().wait();
 }
+function randomNumber(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min) + min);
+}
 
 describe('Second', () => {
   let deployerAccount: PrivateKey,
     zkAppAddress: PublicKey,
     zkAppPrivateKey: PrivateKey,
-    zkAppInstance: Second;
+    zkAppInstance: Second,
+    randomValue: number;
 
   beforeAll(async () => {
     await isReady;
@@ -57,22 +61,22 @@ describe('Second', () => {
     const stateBool = zkAppInstance.BoolA.get();
     expect(stateBool.toBoolean()).toEqual(false);
   });
-  // bug, how to check Bool
+  // check values outside the range
   it('correctly updates the state boolMethods', async () => {
     // need to make it random
-    // let inputValue3 = Field(9);
-    // const txn = await Mina.transaction(deployerAccount, () => {
-    //   zkAppInstance.boolMethods(inputValue3);
-    // });
-    // await txn.prove();
-    // await txn.send().wait();
-    // const updatedBoolA = zkAppInstance.BoolA.get();
-    // expect(updatedBoolA).toEqual(inputValue3.gt(8));
-    // expect(Bool(true)).toEqual(inputValue3.gt(8).toBoolean());
-    // const updatedBoolB = zkAppInstance.BoolB.get();
-    // expect(updatedBoolB.toBoolean()).toEqual(
-    //   inputValue3.lte(50).and(inputValue3.gt(8)).toBoolean()
-    // );
+    randomValue = randomNumber(8, 50);
+    console.log('random value: ', randomValue);
+    let inputValue3 = Field(randomValue);
+    const txn = await Mina.transaction(deployerAccount, () => {
+      zkAppInstance.boolMethods(inputValue3);
+    });
+    await txn.prove();
+    await txn.send().wait();
+    const updatedBoolA = zkAppInstance.BoolA.get();
+    expect(updatedBoolA.toBoolean()).toEqual(randomValue > 8);
+
+    const updatedBoolB = zkAppInstance.BoolB.get();
+    expect(updatedBoolB.toBoolean()).toEqual(randomValue <= 50);
   });
   it('correctly verifies the user', async () => {
     const txn = await Mina.transaction(deployerAccount, () => {
@@ -97,4 +101,13 @@ describe('Second', () => {
     expect(updatedUserState).toEqual(deployerAccount.toPublicKey());
   });
   //it fails to verify incorrect user
+  it('correctly sets conditional state', async () => {
+    const txn = await Mina.transaction(deployerAccount, () => {
+      zkAppInstance.conditional();
+    });
+    await txn.prove();
+    await txn.send().wait();
+    const conditionalState = zkAppInstance.conditionalState.get();
+    expect(conditionalState).toEqual(Field.one);
+  });
 });
