@@ -14,7 +14,7 @@ import {
 function createLocalBlockchain() {
   const Local = Mina.LocalBlockchain();
   Mina.setActiveInstance(Local);
-  return Local.testAccounts[0].privateKey;
+  return Local.testAccounts;
 }
 
 async function localDeploy(
@@ -34,15 +34,17 @@ function randomNumber(min: number, max: number) {
 }
 
 describe('Second', () => {
-  let deployerAccount: PrivateKey,
+  let testAccounts: { publicKey: PublicKey; privateKey: PrivateKey }[],
+    deployerAccount: PrivateKey,
     zkAppAddress: PublicKey,
     zkAppPrivateKey: PrivateKey,
     zkAppInstance: Second,
-    randomValue: number;
+    randomValue: Array<Number>;
 
   beforeAll(async () => {
     await isReady;
-    deployerAccount = createLocalBlockchain();
+    testAccounts = createLocalBlockchain();
+    deployerAccount = testAccounts[0].privateKey;
     zkAppPrivateKey = PrivateKey.random();
     zkAppAddress = zkAppPrivateKey.toPublicKey();
     zkAppInstance = new Second(zkAppAddress);
@@ -62,21 +64,26 @@ describe('Second', () => {
     expect(stateBool.toBoolean()).toEqual(false);
   });
   // check values outside the range
-  it('correctly updates the state boolMethods', async () => {
-    // need to make it random
-    randomValue = randomNumber(8, 50);
-    console.log('random value: ', randomValue);
-    let inputValue3 = Field(randomValue);
-    const txn = await Mina.transaction(deployerAccount, () => {
-      zkAppInstance.boolMethods(inputValue3);
-    });
-    await txn.prove();
-    await txn.send().wait();
-    const updatedBoolA = zkAppInstance.BoolA.get();
-    expect(updatedBoolA.toBoolean()).toEqual(randomValue > 8);
+  it.only('correctly updates the state boolMethods', async () => {
+    randomValue = [
+      randomNumber(8, 50),
+      randomNumber(51, 100),
+      randomNumber(1, 7),
+    ];
+    console.log(randomValue);
+    for (let i = 0; i < 3; i++) {
+      let inputValue3 = Field(randomValue[i]);
+      const txn = await Mina.transaction(deployerAccount, () => {
+        zkAppInstance.boolMethods(inputValue3);
+      });
+      await txn.prove();
+      await txn.send().wait();
+      let updatedBoolA = zkAppInstance.BoolA.get();
+      expect(updatedBoolA.toBoolean()).toEqual(randomValue[i] > 8);
 
-    const updatedBoolB = zkAppInstance.BoolB.get();
-    expect(updatedBoolB.toBoolean()).toEqual(randomValue <= 50);
+      let updatedBoolB = zkAppInstance.BoolB.get();
+      expect(updatedBoolB.toBoolean()).toEqual(randomValue[i] <= 50);
+    }
   });
   it('correctly verifies the user', async () => {
     const txn = await Mina.transaction(deployerAccount, () => {
@@ -100,14 +107,34 @@ describe('Second', () => {
     const updatedUserState = zkAppInstance.user.get();
     expect(updatedUserState).toEqual(deployerAccount.toPublicKey());
   });
-  //it fails to verify incorrect user
+  it.skip('fails with incorrect user ', async () => {
+    // try {
+    let valueX = Field(999);
+    let signature = Signature.create(testAccounts[1].privateKey, [valueX]);
+    const txn = await Mina.transaction(testAccounts[1].privateKey, () => {
+      zkAppInstance.signature(valueX, signature);
+    });
+
+    expect(await txn.prove()).toThrowError('assert_equal: 0 != 1');
+    await txn.send().wait();
+    // } catch (error) {
+    // console.log(error);
+    console.log('we got here?');
+    // }
+    //finish here try catch the error
+  });
   it('correctly sets conditional state', async () => {
+    const boolBState = zkAppInstance.BoolB.get();
     const txn = await Mina.transaction(deployerAccount, () => {
       zkAppInstance.conditional();
     });
     await txn.prove();
     await txn.send().wait();
     const conditionalState = zkAppInstance.conditionalState.get();
-    expect(conditionalState).toEqual(Field.one);
+    if (boolBState) {
+      expect(conditionalState).toEqual(Field.one);
+    } else {
+      expect(conditionalState).toEqual(Field(1337));
+    }
   });
 });

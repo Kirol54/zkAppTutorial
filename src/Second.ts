@@ -38,7 +38,7 @@ export class Second extends SmartContract {
     // this.state1.assertEquals(currentState1);
 
     let isInputLower = inputValue.lte(50);
-    let isInRange = isInputLower.and(isInputGreater);
+    let isInRange = isInputLower.or(isInputGreater);
     this.BoolB.set(isInRange);
   }
   @method verifyUser(userPrivKey: PrivateKey) {
