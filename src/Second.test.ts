@@ -39,7 +39,7 @@ describe('Second', () => {
     zkAppAddress: PublicKey,
     zkAppPrivateKey: PrivateKey,
     zkAppInstance: Second,
-    randomValue: Array<Number>;
+    randomValue: Array<number>;
 
   beforeAll(async () => {
     await isReady;
@@ -64,14 +64,14 @@ describe('Second', () => {
     expect(stateBool.toBoolean()).toEqual(false);
   });
   // check values outside the range
-  it.only('correctly updates the state boolMethods', async () => {
+  it('correctly updates the state boolMethods', async () => {
     randomValue = [
       randomNumber(8, 50),
       randomNumber(51, 100),
       randomNumber(1, 7),
     ];
     console.log(randomValue);
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < randomValue.length; i++) {
       let inputValue3 = Field(randomValue[i]);
       const txn = await Mina.transaction(deployerAccount, () => {
         zkAppInstance.boolMethods(inputValue3);
@@ -82,7 +82,9 @@ describe('Second', () => {
       expect(updatedBoolA.toBoolean()).toEqual(randomValue[i] > 8);
 
       let updatedBoolB = zkAppInstance.BoolB.get();
-      expect(updatedBoolB.toBoolean()).toEqual(randomValue[i] <= 50);
+      expect(updatedBoolB.toBoolean()).toEqual(
+        randomValue[i] <= 50 && randomValue[i] > 8
+      );
     }
   });
   it('correctly verifies the user', async () => {
@@ -108,20 +110,18 @@ describe('Second', () => {
     expect(updatedUserState).toEqual(deployerAccount.toPublicKey());
   });
   it.skip('fails with incorrect user ', async () => {
-    // try {
     let valueX = Field(999);
     let signature = Signature.create(testAccounts[1].privateKey, [valueX]);
     const txn = await Mina.transaction(testAccounts[1].privateKey, () => {
       zkAppInstance.signature(valueX, signature);
     });
-
-    expect(await txn.prove()).toThrowError('assert_equal: 0 != 1');
-    await txn.send().wait();
-    // } catch (error) {
-    // console.log(error);
-    console.log('we got here?');
-    // }
-    //finish here try catch the error
+    expect(async () => {
+      try {
+        await txn.prove();
+      } catch (e) {
+        return e;
+      }
+    }).toThrow();
   });
   it('correctly sets conditional state', async () => {
     const boolBState = zkAppInstance.BoolB.get();

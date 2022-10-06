@@ -32,25 +32,26 @@ export class Second extends SmartContract {
     //   b = b.not().or(b).and(b); // b = Bool(true)
     //   b.toBoolean(); // true
     //assertGreater(1)?
-    let isInputGreater = inputValue.gt(8);
+    const isInputGreater = inputValue.gt(8);
     this.BoolA.set(isInputGreater);
     // const currentState1 = this.state1.get();
     // this.state1.assertEquals(currentState1);
 
-    let isInputLower = inputValue.lte(50);
-    let isInRange = isInputLower.or(isInputGreater);
+    const isInputLower = inputValue.lte(50);
+
+    const isInRange = isInputGreater.and(isInputLower);
     this.BoolB.set(isInRange);
   }
   @method verifyUser(userPrivKey: PrivateKey) {
+    // name setUser
     // returns public key of the user ?
-    let userAddr = userPrivKey.toPublicKey();
+    const userAddr = userPrivKey.toPublicKey();
     this.user.set(userAddr);
-    //priv key
   }
   @method signature(x: Field, signature: Signature) {
-    let ownerAddr = this.user.get();
+    const ownerAddr = this.user.get();
     this.user.assertEquals(ownerAddr);
-    signature.verify(ownerAddr, [x]).assertEquals(true);
+    signature.verify(ownerAddr, [x]).assertTrue();
   }
 
   @method conditional() {

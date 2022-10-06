@@ -34,7 +34,6 @@ export class Main extends SmartContract {
     newState.assertEquals(currentState.add(2));
     this.state1.set(newState);
   }
-  // two ways to do deploy tx
   // methods that return something?
 
   @method mathOne(inputValue: Field) {
@@ -80,8 +79,6 @@ export class Main extends SmartContract {
   // x.assertGt(y);     // x > y
   // x.assertGte(y);    // x >= y
   // }
-
-  // @method transferCoin() {}
 
   //--------------------------------------------------------
   // @method networkValues() {
