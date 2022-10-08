@@ -1,20 +1,18 @@
 import {
-  Bool,
-  PrivateKey,
   PublicKey,
-  Field,
   SmartContract,
   method,
   DeployArgs,
   Permissions,
-  AccountUpdate,
   UInt64,
   State,
   state,
 } from 'snarkyjs';
 
 export class Third extends SmartContract {
-  @state(Field) counter = State<Field>();
+  @state(UInt64) inboundCounter = State<UInt64>();
+  @state(UInt64) outboundCounter = State<UInt64>();
+
   @state(PublicKey) drainer = State<PublicKey>();
 
   deploy(args: DeployArgs) {
@@ -26,34 +24,20 @@ export class Third extends SmartContract {
       send: Permissions.proofOrSignature(),
     });
   }
-  @method depositMina(caller: PrivateKey, amount: Field) {
-    const callerAddress = caller.toPublicKey();
+  @method sendMina(amount: UInt64) {
+    const currentCounter = this.inboundCounter.get();
+    this.inboundCounter.assertEquals(currentCounter);
+    this.balance.addInPlace(amount);
 
-    const balance = this.account.balance.get();
-    this.account.balance.assertEquals(balance);
-    const callerAccountUpdate =
-      AccountUpdate.defaultAccountUpdate(callerAddress);
-    callerAccountUpdate.account.isNew.assertEquals(Bool(true));
-
-    this.send({
-      to: AccountUpdate.defaultAccountUpdate(this.address),
-      amount: new UInt64(amount),
-    });
+    this.inboundCounter.set(currentCounter.add(amount));
   }
 
-  @method drainMina(caller: PublicKey) {
-    const balance = this.account.balance.get();
-    this.account.balance.assertEquals(balance);
-    const callerAccountUpdate = AccountUpdate.defaultAccountUpdate(caller);
-    this.send({
-      to: callerAccountUpdate,
-      amount: balance,
-    });
+  @method withdrawMina(caller: PublicKey, amount: UInt64) {
+    this.balance.subInPlace(amount);
+    const currentCounter = this.outboundCounter.get();
+    this.outboundCounter.assertEquals(currentCounter);
 
-    const currentCounter = this.counter.get();
-    this.counter.assertEquals(currentCounter);
-
-    this.counter.set(currentCounter.add(1));
+    this.outboundCounter.set(currentCounter.add(amount));
 
     this.drainer.set(caller);
   }

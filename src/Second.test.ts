@@ -89,7 +89,7 @@ describe('Second', () => {
   });
   it('correctly verifies the user', async () => {
     const txn = await Mina.transaction(deployerAccount, () => {
-      zkAppInstance.verifyUser(deployerAccount);
+      zkAppInstance.setUser(deployerAccount);
     });
     await txn.prove();
     await txn.send().wait();
@@ -109,19 +109,19 @@ describe('Second', () => {
     const updatedUserState = zkAppInstance.user.get();
     expect(updatedUserState).toEqual(deployerAccount.toPublicKey());
   });
-  it.skip('fails with incorrect user ', async () => {
+  it('fails with incorrect user ', async () => {
     let valueX = Field(999);
     let signature = Signature.create(testAccounts[1].privateKey, [valueX]);
-    const txn = await Mina.transaction(testAccounts[1].privateKey, () => {
-      zkAppInstance.signature(valueX, signature);
-    });
-    expect(async () => {
-      try {
-        await txn.prove();
-      } catch (e) {
-        return e;
-      }
-    }).toThrow();
+    let error = '';
+    try {
+      const txn = await Mina.transaction(testAccounts[1].privateKey, () => {
+        zkAppInstance.signature(valueX, signature);
+      });
+      await txn.prove();
+    } catch (e: any) {
+      error = e.message;
+    }
+    expect(error).toEqual('assert_equal: 0 != 1');
   });
   it('correctly sets conditional state', async () => {
     const boolBState = zkAppInstance.BoolB.get();
@@ -131,7 +131,7 @@ describe('Second', () => {
     await txn.prove();
     await txn.send().wait();
     const conditionalState = zkAppInstance.conditionalState.get();
-    if (boolBState) {
+    if (boolBState.toBoolean()) {
       expect(conditionalState).toEqual(Field.one);
     } else {
       expect(conditionalState).toEqual(Field(1337));

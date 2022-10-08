@@ -34,31 +34,31 @@ export class Main extends SmartContract {
     newState.assertEquals(currentState.add(2));
     this.state1.set(newState);
   }
-  // methods that return something?
 
   @method mathOne(inputValue: Field) {
     const currentState1 = this.state1.get();
     this.state1.assertEquals(currentState1);
+
     const newState1 = currentState1.mul(inputValue);
     newState1.assertEquals(currentState1.mul(inputValue));
     this.state1.set(newState1);
-    //
     const newState2 = newState1.square();
     newState2.assertEquals(newState1.square());
     this.state2.set(newState2);
   }
 
   @method mathTwo(inputValue: Field) {
-    // x = x.sub(1); //
     const currentState1 = this.state1.get();
     this.state1.assertEquals(currentState1);
     const newState1 = currentState1.div(inputValue);
     newState1.assertEquals(currentState1.div(inputValue));
     this.state1.set(newState1);
-    //
+
     const currentState2 = this.state2.get();
     this.state2.assertEquals(currentState2);
+
     const newState2 = currentState2.sqrt();
+
     newState2.assertEquals(currentState2.sqrt());
     this.state2.set(newState2);
   }

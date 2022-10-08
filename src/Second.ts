@@ -28,23 +28,13 @@ export class Second extends SmartContract {
   }
 
   @method boolMethods(inputValue: Field) {
-    //   let b = x.equals(8); // b = Bool(false)
-    //   b = b.not().or(b).and(b); // b = Bool(true)
-    //   b.toBoolean(); // true
-    //assertGreater(1)?
     const isInputGreater = inputValue.gt(8);
     this.BoolA.set(isInputGreater);
-    // const currentState1 = this.state1.get();
-    // this.state1.assertEquals(currentState1);
-
     const isInputLower = inputValue.lte(50);
-
     const isInRange = isInputGreater.and(isInputLower);
     this.BoolB.set(isInRange);
   }
-  @method verifyUser(userPrivKey: PrivateKey) {
-    // name setUser
-    // returns public key of the user ?
+  @method setUser(userPrivKey: PrivateKey) {
     const userAddr = userPrivKey.toPublicKey();
     this.user.set(userAddr);
   }

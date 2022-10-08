@@ -7,7 +7,9 @@ import {
   PrivateKey,
   PublicKey,
   AccountUpdate,
-  // Bool,
+  Account,
+  UInt64,
+  Bool,
   //   Signature,
 } from 'snarkyjs';
 
@@ -58,9 +60,42 @@ describe('Third', () => {
     setTimeout(shutdown, 0);
   });
   it('generates and deploys the `Third` smart contract', async () => {
-    const counter = zkAppInstance.counter.get();
-    expect(counter).toEqual(Field.zero);
+    const counter = zkAppInstance.inboundCounter.get();
+    expect(counter).toEqual(new UInt64(Field.zero));
   });
-  it('correctly deposits Mina to the smart contract', async () => {});
-  it('correctly transfers Mina to the caller ', async () => {});
+  it('correctly deposits Mina to the smart contract', async () => {
+    let caller = testAccounts[1].privateKey;
+    let amount = new UInt64(Field(1337));
+    let balanceBefore = new UInt64(Account(zkAppAddress).balance.get().value);
+
+    const txn = await Mina.transaction(caller, () => {
+      AccountUpdate.createSigned(caller).balance.subInPlace(amount);
+      zkAppInstance.sendMina(amount);
+    });
+    await txn.prove();
+    await txn.send().wait();
+
+    let balanceAfter = new UInt64(Account(zkAppAddress).balance.get().value);
+
+    expect(balanceAfter).toEqual(balanceBefore.add(amount));
+  });
+  it('correctly transfers Mina to the caller ', async () => {
+    let latestDrainer = zkAppInstance.drainer.get();
+    expect(latestDrainer.isEmpty()).toEqual(Bool(true));
+    let caller = testAccounts[1].privateKey;
+    let callerAddr = caller.toPublicKey();
+    let amount = new UInt64(Field(1337));
+    let balanceBefore = new UInt64(Account(callerAddr).balance.get().value);
+
+    const txn = await Mina.transaction(caller, () => {
+      AccountUpdate.create(callerAddr).balance.addInPlace(amount);
+      zkAppInstance.withdrawMina(callerAddr, amount);
+    });
+    await txn.prove();
+    await txn.send().wait();
+
+    let balanceAfter = new UInt64(Account(callerAddr).balance.get().value);
+
+    expect(balanceAfter).toEqual(balanceBefore.add(amount));
+  });
 });
