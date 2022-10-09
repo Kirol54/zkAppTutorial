@@ -10,7 +10,6 @@ import {
   Account,
   UInt64,
   Bool,
-  //   Signature,
 } from 'snarkyjs';
 
 function createLocalBlockchain() {
@@ -31,9 +30,6 @@ async function localDeploy(
   });
   await txn.send().wait();
 }
-// function randomNumber(min: number, max: number) {
-//   return Math.floor(Math.random() * (max - min) + min);
-// }
 
 describe('Third', () => {
   let testAccounts: { publicKey: PublicKey; privateKey: PrivateKey }[],
@@ -79,22 +75,22 @@ describe('Third', () => {
 
     expect(balanceAfter).toEqual(balanceBefore.add(amount));
   });
-  it('correctly transfers Mina to the caller ', async () => {
+  it('correctly transfers Mina to the reciver ', async () => {
     let latestDrainer = zkAppInstance.drainer.get();
     expect(latestDrainer.isEmpty()).toEqual(Bool(true));
-    let caller = testAccounts[1].privateKey;
-    let callerAddr = caller.toPublicKey();
+    let reciver = testAccounts[1].privateKey;
+    let reciverAddr = reciver.toPublicKey();
     let amount = new UInt64(Field(1337));
-    let balanceBefore = new UInt64(Account(callerAddr).balance.get().value);
+    let balanceBefore = new UInt64(Account(reciverAddr).balance.get().value);
 
-    const txn = await Mina.transaction(caller, () => {
-      AccountUpdate.create(callerAddr).balance.addInPlace(amount);
-      zkAppInstance.withdrawMina(callerAddr, amount);
+    const txn = await Mina.transaction(reciver, () => {
+      AccountUpdate.create(reciverAddr).balance.addInPlace(amount);
+      zkAppInstance.withdrawMina(reciverAddr, amount);
     });
     await txn.prove();
     await txn.send().wait();
 
-    let balanceAfter = new UInt64(Account(callerAddr).balance.get().value);
+    let balanceAfter = new UInt64(Account(reciverAddr).balance.get().value);
 
     expect(balanceAfter).toEqual(balanceBefore.add(amount));
   });

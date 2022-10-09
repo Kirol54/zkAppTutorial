@@ -7,7 +7,6 @@ import {
   PrivateKey,
   PublicKey,
   AccountUpdate,
-  // Bool,
   Signature,
 } from 'snarkyjs';
 
@@ -70,7 +69,6 @@ describe('Second', () => {
       randomNumber(51, 100),
       randomNumber(1, 7),
     ];
-    console.log(randomValue);
     for (let i = 0; i < randomValue.length; i++) {
       let inputValue3 = Field(randomValue[i]);
       const txn = await Mina.transaction(deployerAccount, () => {
@@ -94,7 +92,7 @@ describe('Second', () => {
     await txn.prove();
     await txn.send().wait();
 
-    const updatedUserState = zkAppInstance.user.get();
+    const updatedUserState = zkAppInstance.userAddr.get();
     expect(updatedUserState).toEqual(deployerAccount.toPublicKey());
   });
   it('correctly verifies the user signature', async () => {
@@ -106,7 +104,7 @@ describe('Second', () => {
     await txn.prove();
     await txn.send().wait();
 
-    const updatedUserState = zkAppInstance.user.get();
+    const updatedUserState = zkAppInstance.userAddr.get();
     expect(updatedUserState).toEqual(deployerAccount.toPublicKey());
   });
   it('fails with incorrect user ', async () => {

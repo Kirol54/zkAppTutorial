@@ -1,4 +1,4 @@
-import { Main } from './Main';
+import { First } from './First';
 import {
   isReady,
   shutdown,
@@ -8,8 +8,6 @@ import {
   PublicKey,
   AccountUpdate,
   Poseidon,
-  // Bool,
-  // Signature,
 } from 'snarkyjs';
 
 function createLocalBlockchain() {
@@ -19,7 +17,7 @@ function createLocalBlockchain() {
 }
 
 async function localDeploy(
-  zkAppInstance: Main,
+  zkAppInstance: First,
   zkAppPrivatekey: PrivateKey,
   deployerAccount: PrivateKey
 ) {
@@ -34,11 +32,11 @@ function randomNumber(min: number, max: number) {
   return Math.floor(Math.random() * (max - min) + min);
 }
 
-describe('Main', () => {
+describe('First', () => {
   let deployerAccount: PrivateKey,
     zkAppAddress: PublicKey,
     zkAppPrivateKey: PrivateKey,
-    zkAppInstance: Main;
+    zkAppInstance: First;
 
   let inputValue1: Field,
     inputValue2: Field,
@@ -50,9 +48,9 @@ describe('Main', () => {
     deployerAccount = createLocalBlockchain();
     zkAppPrivateKey = PrivateKey.random();
     zkAppAddress = zkAppPrivateKey.toPublicKey();
-    zkAppInstance = new Main(zkAppAddress);
+    zkAppInstance = new First(zkAppAddress);
     await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
-    await Main.compile();
+    await First.compile();
   });
 
   afterAll(async () => {
@@ -62,12 +60,12 @@ describe('Main', () => {
     setTimeout(shutdown, 0);
   });
 
-  it('generates and deploys the `Main` smart contract', async () => {
+  it('generates and deploys the `First` smart contract', async () => {
     const state1 = zkAppInstance.state1.get();
     expect(state1).toEqual(Field.zero);
   });
 
-  it('correctly sets the state1 on the `Main` smart contract', async () => {
+  it('correctly sets the state1 on the `First` smart contract', async () => {
     const txn = await Mina.transaction(deployerAccount, () => {
       zkAppInstance.setState();
     });

@@ -24,6 +24,11 @@ export class Third extends SmartContract {
       send: Permissions.proofOrSignature(),
     });
   }
+  /**
+   * This method sends Mina to this SmartContract and
+   * increments inboundCounter by the amount
+   * @param amount amount of nanoMina to be transferred
+   */
   @method sendMina(amount: UInt64) {
     const currentCounter = this.inboundCounter.get();
     this.inboundCounter.assertEquals(currentCounter);
@@ -31,14 +36,19 @@ export class Third extends SmartContract {
 
     this.inboundCounter.set(currentCounter.add(amount));
   }
-
-  @method withdrawMina(caller: PublicKey, amount: UInt64) {
+  /**
+   * This method allows calller to withdraw Mina to this SmartContract and
+   * increments outboundCounter by the amount
+   * @param reciver PublicKey of the reciver
+   * @param amount amount of nanoMina to be withdrawn
+   */
+  @method withdrawMina(reciver: PublicKey, amount: UInt64) {
     this.balance.subInPlace(amount);
     const currentCounter = this.outboundCounter.get();
     this.outboundCounter.assertEquals(currentCounter);
 
     this.outboundCounter.set(currentCounter.add(amount));
 
-    this.drainer.set(caller);
+    this.drainer.set(reciver);
   }
 }
